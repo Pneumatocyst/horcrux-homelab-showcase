@@ -1,6 +1,6 @@
 # Monitoring
 
-HORCRUX uses black-box monitoring: every user-facing service is probed the way a user would reach it, and the results feed a Grafana command center shown on a physical kiosk.
+HORCRUX uses black-box monitoring: every user-facing service is probed the way a user would reach it, and the results feed a Grafana command center. Grafana alert rules post to a chat channel, and the physical kiosk shows HorcruX Orbit, which reads the same Prometheus data.
 
 ```mermaid
 flowchart LR
@@ -9,7 +9,9 @@ flowchart LR
     P -->|/probe| BB[Blackbox Exporter]
     BB -->|HTTP / HTTPS / DNS / ICMP| S[Services and guests]
     G[Grafana] --> P
-    G --> K[Kiosk display]
+    G -->|alert rules| A[Chat notifications]
+    O[HorcruX Orbit] -->|live rates| P
+    O --> K[Kiosk display]
 ```
 
 ## Probe design
@@ -120,6 +122,12 @@ probe_duration_seconds{service="imagined"} * 1000
 ```
 
 The dashboard is exported as JSON after significant changes, because it lives in Grafana's database rather than on disk.
+
+## Lessons from October 2026
+
+- **Retire a service everywhere.** Weeks after the old start page was retired, a chat channel kept getting "down" alerts for it. The status page had no such check; the source was a Grafana alert rule nobody had updated. Retirement checklists now include alert rules, not just probes and dashboards.
+- **Scrape fast only where it matters.** The kiosk's live traffic view lagged with default scrapes. Only the cAdvisor and node-exporter jobs moved to 5 seconds; probes stayed on the default.
+- **Containers on the host network can't be measured separately.** Their traffic is indistinguishable from the VM's own NIC, so Orbit says so instead of guessing.
 
 ## Terminal control deck
 

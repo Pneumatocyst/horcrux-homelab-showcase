@@ -32,12 +32,12 @@ Snapshots are rollback points on the same disk. They are **not** backups. Each g
 
 | Tier | Target | Status |
 | --- | --- | --- |
-| Guest archives | Nightly `vzdump` of all guests to a dedicated external SSD, `keep-last=7`, with a mount guard so a missing disk can't fill the system drive | **Degraded:** the backup SSD failed in September 2026; replacement pending |
+| Guest archives | Nightly `vzdump` of all guests to a dedicated USB drive, `keep-last=7`, with a mount guard so a missing disk can't fill the system drive | **Restored October 2026** on a new drive after the original SSD failed; first full run succeeded for all five guests |
 | Configuration | Compose files and configs live inside the services VM, so guest archives cover them | Depends on tier 1 |
 | Media | External media SSD, not included in guest archives | Needs an offsite/full copy |
 | Offsite | Not yet in place | Top resilience gap |
 
-The mount guard worked as designed when the drive failed: Proxmox marked the storage inactive instead of silently writing backups onto the root filesystem.
+The mount guard worked as designed when the drive failed: Proxmox marked the storage inactive instead of silently writing backups onto the root filesystem. During the outage the nightly job ran to a temporary directory on the media SSD, a stopgap that is removed once the new drive has a run of clean nights. The dashboard now shows each guest's last archive and its age.
 
 ## Recovery rehearsals
 
@@ -48,10 +48,12 @@ The mount guard worked as designed when the drive failed: Proxmox marked the sto
 
 ## Open work
 
-- [ ] Replace the failed backup SSD, rebuild guarded backup storage, verify a full nightly run
+- [x] Replace the failed backup SSD, rebuild guarded backup storage, complete a full run (October 2026)
+- [ ] Several clean nightly runs on the new drive, then remove the temporary copies
 - [ ] Offsite / full-scope backup, including media
 - [ ] Full restore rehearsal into an unused VM ID
-- [ ] Repair the secondary status monitor and reconcile its checks
+- [x] Find the source of stale "down" alerts for a retired service (a Grafana alert rule)
+- [ ] Confirm the secondary status monitor update and retarget the stale alert rule
 - [ ] Update the remaining guests
 - [ ] Pin floating container image tags to tested versions
 - [ ] UPS with graceful shutdown
