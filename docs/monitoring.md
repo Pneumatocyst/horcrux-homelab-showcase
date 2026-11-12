@@ -1,6 +1,6 @@
 # Monitoring
 
-HORCRUX uses black-box monitoring: every user-facing service is probed the way a user would reach it, and the results feed a Grafana command center. Grafana alert rules post to a chat channel, and the physical kiosk shows HorcruX Orbit, which reads the same Prometheus data.
+HORCRUX uses black-box monitoring: core user-facing services are probed the way a user would reach them, and the results feed a Grafana command center. Grafana alert rules post to a chat channel, and the physical kiosk shows HorcruX Orbit, which reads the same Prometheus data.
 
 ```mermaid
 flowchart LR
@@ -20,8 +20,7 @@ Every probe carries a `service` label, so dashboards and queries never depend on
 
 | Probe type | Services | Why it's built this way |
 | --- | --- | --- |
-| HTTP `2xx` | Dashboard (`/healthz`), media server, status page, DNS admin UI, speed tracker, collector API | Proves the app answers, not just that the port is open |
-| HTTPS (self-signed) | Container management UI | Internal certificate, still verifies the service responds |
+| HTTP `2xx` | Dashboard (`/healthz`), media server, DNS admin UI, speed tracker, and other configured applications | Proves the app answers, not just that the port is open |
 | **DNS lookup** | AdGuard Home | A real `A` record query. The web UI can be up while DNS is broken, and only this catches it. |
 | **HTTP `200` or `401`** | Local AI bridge | The bridge requires a token, so `401` means *alive and guarding the door* |
 | **Nextcloud status** | Nextcloud | Checks `"installed": true` and fails if maintenance mode is on |
@@ -141,3 +140,11 @@ Along with Grafana, a read-only Bash status view runs on the services VM. It sho
 4. Restart only the affected containers.
 5. Confirm with a `probe_success` query before touching dashboards.
 6. Remove the backup once it's verified.
+
+## November 12, 2026 verification
+
+All 16 active Prometheus scrape targets were up. This means exporters were reachable; application health still requires the corresponding probe result. The dashboard reported 14 active service checks passing and the printer expected offline. cAdvisor and both Node Exporter targets scrape every 5 seconds, Blackbox every 15 seconds, and Speedtest every minute.
+
+All 23 containers were running; 11 configured Docker healthchecks passed and 12 containers had no healthcheck. Kiwix, the assistant integration, proxy, and Scrutiny need a coverage review. Portainer, Uptime Kuma, and Sentinel are retired. Historical notification routes and stale alert-rule cleanup were not revalidated by sending alerts.
+
+The host SMART daemon is failed after a startup device-scan timeout. The separate Scrutiny collector timer succeeds, but its web API contains only the system NVMe; the backup HDD and media SSD are not covered. A daemon timeout alone is not evidence of disk failure. No physical kiosk inspection or inference load test was performed.

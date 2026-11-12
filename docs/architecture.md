@@ -1,6 +1,6 @@
 # Architecture
 
-Baseline: September 2026, updated October 2026. Addresses and identifying details are intentionally omitted.
+Live audit: November 12, 2026. Addresses and identifying details are intentionally omitted.
 
 ## Host
 
@@ -16,9 +16,9 @@ Baseline: September 2026, updated October 2026. Addresses and identifying detail
 
 | ID | Role | OS | Resources | Autostart |
 | --- | --- | --- | --- | --- |
-| VM 100 | Services (all Docker workloads) | Ubuntu Server 26.04 LTS | 2 vCPU, 6 GB, 64 GB | Order 1, 60 s settle |
-| CT 101 | Local AI (Ollama + bridge) | Debian 13 LXC | 4 cores, 8 GB, 20 GB | Order 2 |
-| VM 400 | HorcruX Orbit kiosk on a physical portrait monitor | Debian 13 + Xfce + Chromium | 2 vCPU, 2 GB, 16 GB | Order 3 |
+| VM 100 | Services (all Docker workloads) | Ubuntu Server 26.04 LTS | 2 vCPU, 6 GB, 64 GB | Order 1, 20 s settle |
+| CT 101 | Local AI (Ollama + bridge) | Debian 13 LXC | 4 cores, 8 GB, 32 GB | Order 2 |
+| VM 400 | HorcruX Orbit kiosk on a physical portrait monitor | Debian 13 + Xfce + Chromium | 2 vCPU, 3 GB, 16 GB | Order 3 |
 | VM 300 | Always-on desktop workstation | Fedora 44 GNOME (RDP) | 4 vCPU, 8 GB (balloon min 4 GB), 48 GB | Order 4 |
 | VM 200 | 3D-printer server | Ubuntu + OctoPrint | 2 vCPU, 2 GB, 20 GB | Off; started on demand |
 
@@ -26,7 +26,7 @@ Baseline: September 2026, updated October 2026. Addresses and identifying detail
 
 ```mermaid
 flowchart LR
-    A[1. VM 100<br/>DNS, monitoring, apps] -->|60 s| B[2. CT 101<br/>AI for the dashboard]
+    A[1. VM 100<br/>DNS, monitoring, apps] -->|20 s| B[2. CT 101<br/>AI for the dashboard]
     B --> C[3. VM 400<br/>kiosk needs Orbit]
     C --> D[4. VM 300<br/>workstation]
     E[VM 200 OctoPrint]:::manual
@@ -37,11 +37,11 @@ The order follows dependencies. The kiosk is useless until the services VM is up
 
 ### Memory budget
 
-Configured maximums total about 24 GB on a host with about 23 GiB usable. That works because the workstation balloons down to 4 GB under pressure. With every autostart guest running, the host still has about 8 GiB available.
+Always-on guest memory ceilings total 25 GiB on a host with about 23.3 GiB usable. The workstation has a 4 GiB balloon minimum; the audit found about 7 GiB available on the host without active swapping in a short sample. This is a point-in-time observation, not a capacity stress test. Two stopped guests add another 2.5 GiB if started. An experimental 512 MiB DreamOS guest is stopped and excluded from the nightly backup job.
 
 ## Service layout
 
-Every Compose project on VM 100 lives in its own folder under `/opt/horcrux`:
+VM 100 runs 23 containers across 13 Compose projects. Most projects live under `/opt/horcrux`; monitoring currently uses a separate infrastructure checkout. The repository is a source snapshot, not a complete representation of every live project:
 
 ```text
 /opt/horcrux/
@@ -51,10 +51,13 @@ Every Compose project on VM 100 lives in its own folder under `/opt/horcrux`:
 ├── jellyfin/           Media server
 ├── monitoring/         Prometheus, Grafana, Blackbox, Node Exporter, cAdvisor
 ├── nextcloud/          Nextcloud + MariaDB + Redis + cron
-├── portainer/          Container management UI
+├── discord-harry/     Assistant integration
+├── kiwix/             Offline reference library
+├── romm/              Game library
+├── proxy/             Reverse proxy
+├── scrutiny/          Disk monitoring web app + database
 ├── speedtest-tracker/  Scheduled internet speed tests
-├── uptime-kuma/        Secondary status monitor
-├── sentinel/           Small read-only collector API (systemd)
+├── torrents/           Download service + exporter
 ├── scripts/            Terminal control deck and maintenance scripts
 └── _archive/           Superseded configs, kept for rollback
 ```
@@ -89,12 +92,14 @@ Orbit is a 3D observatory that runs on the kiosk. It needs no credentials: it re
 ## Access model
 
 - **Tailscale is the only remote path.** No public port forwarding, no Funnel.
-- Admin UIs (Proxmox, Portainer, AdGuard) are private-LAN or tailnet only.
-- The dashboard and the collector API bind to the tailnet interface only.
-- Backends that don't need publishing (the Nextcloud app server, Prometheus, the model server) listen on loopback or internal Docker networks.
+- Admin UIs (Proxmox, AdGuard) are private-LAN or tailnet only.
+- Imagined and Orbit use private access. The former Sentinel collector has been retired.
+- The Nextcloud app backend and model server remain internal. Prometheus listens on loopback and the tailnet. Some older service ports bind to all interfaces; router forwarding and ACLs were not audited, so binding alone does not establish internet exposure.
 
 ## Retired components
 
 - A general-purpose start page (Homepage), replaced by HorcruX Imagined.
 - The Grafana view on the kiosk, replaced by HorcruX Orbit. Grafana still serves the command center.
 - An earlier workstation VM and a laptop-hosted AI gateway, replaced by the server-side AI container.
+
+Portainer, Uptime Kuma, and Sentinel are archived and absent from the live service inventory. VM 400 runs the Orbit browser/controller; its current Chromium process uses a maximized window rather than the `--kiosk` flag. The physical display was not inspected during this audit.

@@ -30,31 +30,32 @@ Snapshots are rollback points on the same disk. They are **not** backups. Each g
 
 ## Backup strategy
 
-| Tier | Target | Status |
-| --- | --- | --- |
-| Guest archives | Nightly `vzdump` of all guests to a dedicated USB drive, `keep-last=7`, with a mount guard so a missing disk can't fill the system drive | **Restored October 2026** on a new drive after the original SSD failed; first full run succeeded for all five guests |
-| Configuration | Compose files and configs live inside the services VM, so guest archives cover them | Depends on tier 1 |
-| Media | External media SSD, not included in guest archives | Needs an offsite/full copy |
-| Offsite | Not yet in place | Top resilience gap |
+Verified November 12, 2026:
 
-The mount guard worked as designed when the drive failed: Proxmox marked the storage inactive instead of silently writing backups onto the root filesystem. During the outage the nightly job ran to a temporary directory on the media SSD, a stopgap that is removed once the new drive has a run of clean nights. The dashboard now shows each guest's last archive and its age.
+| Tier | Scope | Current evidence and limits |
+| --- | --- | --- |
+| Guest archives | Nightly backup of guests 100, 101, 200, 300, 400; keep last five per guest | Latest job completed for all five; 25 retained archives total about 225 GiB. The stopped experimental guest is excluded. |
+| Selected external data | Daily hardlink snapshots; retain 14 dated snapshots | Nextcloud data, music, Windows backup folder, and application/database exports; latest run succeeded. Movies, TV, and downloads are excluded. |
+| Storage guard | Dedicated backup drive with mount-point guard | Active and roughly 73% used, about 102 GiB available at audit time. Both backup tiers share this drive. |
+| Independent copy | Offsite or second independent destination | Not verified; remains open. |
+
+A successful archive or export does not establish restore consistency. A Windows backup folder does not prove a usable image chain. The hardlink snapshot sizes must not be summed as independent full copies. Imagined currently estimates archive storage from one generation (about 44 GiB) rather than all retained archives (about 225 GiB); capacity planning must use actual storage accounting until corrected.
 
 ## Recovery rehearsals
 
-| Date | Exercise | Result |
-| --- | --- | --- |
-| 2026-09-13 | Restored three guests from verified archives while renumbering guest IDs | All services validated |
-| 2026-09-25 | Services VM cold reboot after the reorganization | 17/17 containers and every endpoint recovered unattended; DNS verified |
+Historical records describe guest restores in September 2026 and a services-VM reboot rehearsal. This audit did not repeat those exercises. A restore from the current backup drive and an isolated application/database restore remain unverified.
 
 ## Open work
 
-- [x] Replace the failed backup SSD, rebuild guarded backup storage, complete a full run (October 2026)
-- [ ] Several clean nightly runs on the new drive, then remove the temporary copies
-- [ ] Offsite / full-scope backup, including media
-- [ ] Full restore rehearsal into an unused VM ID
-- [x] Find the source of stale "down" alerts for a retired service (a Grafana alert rule)
-- [ ] Confirm the secondary status monitor update and retarget the stale alert rule
-- [ ] Update the remaining guests
-- [ ] Pin floating container image tags to tested versions
-- [ ] UPS with graceful shutdown
-- [ ] 32 GB memory upgrade
+- [x] Rebuild guarded guest backup storage and complete recent nightly runs.
+- [x] Add selected external-data backups with application/database exports.
+- [x] Retire Portainer, Uptime Kuma, and Sentinel from the live stack.
+- [ ] Diagnose the host SMART daemon startup timeout; extend disk-health coverage beyond the system NVMe.
+- [ ] Restore a guest and an application dataset from the current backup drive into isolation.
+- [ ] Add an independent/offsite copy and decide whether full media needs protection.
+- [ ] Reconcile live deployment files and Compose projects with the infrastructure repository.
+- [ ] Correct Imagined's retained-archive storage estimate and remove its retired Portainer launcher.
+- [ ] Review 12 containers without healthchecks, 10 without memory limits, and 14 without NanoCPU limits. Other CPU quota mechanisms were not audited.
+- [ ] Review older wildcard listeners, probe coverage for newer services, and floating image tags.
+- [ ] Revalidate historical alert-rule cleanup and update status before making maintenance changes.
+- [ ] Consider a UPS and memory upgrade after measuring workload pressure.

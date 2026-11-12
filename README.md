@@ -3,7 +3,7 @@
 **A single-node Proxmox homelab run like a small production environment:** documented, monitored, recoverable, and changed one verified step at a time.
 
 [![Proxmox VE](https://img.shields.io/badge/Proxmox_VE-9.2-111827?logo=proxmox&logoColor=white)](docs/architecture.md)
-[![Docker Compose](https://img.shields.io/badge/Docker_Compose-10_projects-111827?logo=docker&logoColor=white)](docs/architecture.md#service-layout)
+[![Docker Compose](https://img.shields.io/badge/Docker_Compose-13_projects-111827?logo=docker&logoColor=white)](docs/architecture.md#service-layout)
 [![Prometheus](https://img.shields.io/badge/Prometheus-Blackbox-111827?logo=prometheus&logoColor=white)](docs/monitoring.md)
 [![Grafana](https://img.shields.io/badge/Grafana-Command_Center-111827?logo=grafana&logoColor=white)](docs/monitoring.md#grafana-command-center)
 [![Tailscale](https://img.shields.io/badge/Access-Tailscale_only-111827?logo=tailscale&logoColor=white)](docs/architecture.md#access-model)
@@ -15,7 +15,7 @@ This repository is the public, sanitized portfolio view of HORCRUX. It shows how
 | Layer | What runs there |
 | --- | --- |
 | Host | HP EliteDesk 800 G3 Mini (i5-6500T), Proxmox VE, LVM-thin on NVMe |
-| Services VM | Ubuntu Server 26.04 LTS running 18 containers in 10 Compose projects |
+| Services VM | Ubuntu Server 26.04 LTS running 23 containers in 13 Compose projects |
 | Local AI | Debian LXC running Ollama (Qwen 3.5 9B) behind an authenticated bridge |
 | Dashboard | **HorcruX Imagined**: a custom web dashboard with a built-in local AI assistant, a read-only Proxmox view, and backup status |
 | Kiosk | **HorcruX Orbit**: a live 3D observatory of guests, services, and network flows on a physical portrait monitor |
@@ -24,7 +24,7 @@ This repository is the public, sanitized portfolio view of HORCRUX. It shows how
 | Media and cloud | Jellyfin and Nextcloud, both private |
 | Workstation | Fedora 44 desktop VM over RDP |
 | On-demand | OctoPrint VM for 3D printing, off unless printing |
-| Access | Tailscale only. Nothing is port-forwarded from the internet. |
+| Access | Private LAN and Tailscale access; router forwarding and tailnet ACLs were not re-audited. |
 
 ```mermaid
 flowchart TD
@@ -47,7 +47,7 @@ flowchart TD
 
 - **Virtualization:** guest sizing, dependency-ordered autostart, memory ballooning, iGPU passthrough, snapshot discipline
 - **Containers:** a consistent one-folder-per-service Compose layout, pinned project names, safe migrations with rollback
-- **Monitoring:** black-box probes for every user-facing service, including a real DNS lookup, a token-protected API counted as healthy on `401`, and a maintenance-aware Nextcloud check
+- **Monitoring:** black-box probes for core user-facing services, including a real DNS lookup, a token-protected API counted as healthy on `401`, and a maintenance-aware Nextcloud check
 - **Observability UX:** a Grafana command center with a service timeline, 7-day uptime SLO tiles, and hardware thresholds
 - **Change management:** snapshot, then one change, then validate, then verify, with rollback kept as a separate step
 - **Recovery:** reboot rehearsals, restore runbooks, a backup tier rebuilt after a drive failure, and honest tracking of backup gaps
@@ -72,7 +72,7 @@ flowchart TD
 
 ## Status
 
-Operational. Guest backups were rebuilt on a new dedicated drive in October 2026 after the original SSD failed. The top open items are a full restore rehearsal from that drive and an offsite copy. Progress is tracked in [Operations](docs/operations.md#open-work).
+Live-audited November 12, 2026: 23 containers running, 16 active Prometheus scrape targets up, and the latest nightly backup completed for five scheduled guests. Selected external datasets now have a separate daily backup; full media, offsite recovery, and restore validation remain open. SMART monitoring and deployment drift need attention. See the [dated audit](docs/audits/2026-11-12.md) and [Operations](docs/operations.md#open-work).
 
 ## License
 
