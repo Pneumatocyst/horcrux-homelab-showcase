@@ -1,5 +1,7 @@
 # HORCRUX Homelab
 
+**Later November 12 update:** SMART monitoring is restored for the system NVMe and backup HDD. The media SSD still has incomplete SMART coverage. See the [repair record](docs/audits/2026-11-12.md#smart-monitoring-repair--later-on-november-12).
+
 **A single-node Proxmox homelab run like a small production environment:** documented, monitored, recoverable, and changed one verified step at a time.
 
 [![Proxmox VE](https://img.shields.io/badge/Proxmox_VE-9.2-111827?logo=proxmox&logoColor=white)](docs/architecture.md)
