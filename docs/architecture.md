@@ -1,5 +1,7 @@
 # Architecture
 
+**November 13 hardware hold:** The independent PBS integration is configured, but its disk returned uncorrectable reads and eight pending sectors during initial verification. PBS is read-only and its new jobs are paused; use the unchanged USB tier for recovery. The host memory upgrade is reflected in a 31.2 GiB live reading. See the [backup-server record](audits/2026-11-13-backup-server.md).
+
 Live audit: November 12, 2026. Addresses and identifying details are intentionally omitted.
 
 ## Host
@@ -7,10 +9,14 @@ Live audit: November 12, 2026. Addresses and identifying details are intentional
 | Component | Detail |
 | --- | --- |
 | Hardware | HP EliteDesk 800 G3 Desktop Mini, Intel Core i5-6500T (4C/4T) |
-| Memory | About 23 GiB usable (32 GB upgrade planned) |
+| Memory | About 31.2 GiB usable; 32 GB upgrade observed November 13 |
 | Storage | 256 GB NVMe (Proxmox + LVM-thin), external SSD for media, dedicated USB drive for guest backups (replaced October 2026) |
 | Hypervisor | Proxmox VE 9.2, kernel 7.0 |
 | Network | Single gigabit uplink via an 8-port switch; Linux bridge `vmbr0` |
+
+## Independent backup host
+
+A separate physical PBS 4.2 host has 16 GiB RAM and a 320 GB HDD. Its datastore shares the OS filesystem. Its intended policy is five guest copies at 23:00 Central followed by selected data, retaining three; these jobs are currently paused after a disk fault. Existing 21:00 USB guest backups remain in place. Private remote management currently uses the services VM gateway, so local LAN administration is the fallback when that VM is down. Integrity verification and full restore rehearsal are tracked separately.
 
 ## Guests
 
@@ -37,7 +43,7 @@ The order follows dependencies. The kiosk is useless until the services VM is up
 
 ### Memory budget
 
-Always-on guest memory ceilings total 25 GiB on a host with about 23.3 GiB usable. The workstation has a 4 GiB balloon minimum; the audit found about 7 GiB available on the host without active swapping in a short sample. This is a point-in-time observation, not a capacity stress test. Two stopped guests add another 2.5 GiB if started. An experimental 512 MiB DreamOS guest is stopped and excluded from the nightly backup job.
+Always-on guest memory ceilings total 25 GiB on a host with about 31.2 GiB usable, observed November 13. The following available-memory sample is historical from November 12. The workstation has a 4 GiB balloon minimum; the audit found about 7 GiB available on the host without active swapping in a short sample. This is a point-in-time observation, not a capacity stress test. Two stopped guests add another 2.5 GiB if started. An experimental 512 MiB DreamOS guest is stopped and excluded from the nightly backup job.
 
 ## Service layout
 

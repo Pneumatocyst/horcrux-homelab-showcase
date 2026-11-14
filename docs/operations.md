@@ -1,5 +1,7 @@
 # Operations
 
+**November 13 hardware hold:** The independent PBS integration is configured, but its disk returned uncorrectable reads and eight pending sectors during initial verification. PBS is read-only and its new jobs are paused; use the unchanged USB tier for recovery. The host memory upgrade is reflected in a 31.2 GiB live reading. See the [backup-server record](audits/2026-11-13-backup-server.md).
+
 ## Change workflow
 
 Every change follows the same loop:
@@ -37,9 +39,10 @@ Verified November 12, 2026:
 | Guest archives | Nightly backup of guests 100, 101, 200, 300, 400; keep last five per guest | Latest job completed for all five; 25 retained archives total about 225 GiB. The stopped experimental guest is excluded. |
 | Selected external data | Daily hardlink snapshots; retain 14 dated snapshots | Nextcloud data, music, Windows backup folder, and application/database exports; latest run succeeded. Movies, TV, and downloads are excluded. |
 | Storage guard | Dedicated backup drive with mount-point guard | Active and roughly 73% used, about 102 GiB available at audit time. Both backup tiers share this drive. |
-| Independent copy | Offsite or second independent destination | Not verified; remains open. |
+| Independent on-site destination | Separate physical PBS host; planned 23:00 guests plus selected data, retain three | Initial transfers completed; disk failed verification. Read-only, jobs paused, copies untrusted. |
+| Offsite/disconnected copy | Separate site or disconnected media | Not verified; remains open. |
 
-A successful archive or export does not establish restore consistency. A Windows backup folder does not prove a usable image chain. The hardlink snapshot sizes must not be summed as independent full copies. Imagined currently estimates archive storage from one generation (about 44 GiB) rather than all retained archives (about 225 GiB); capacity planning must use actual storage accounting until corrected.
+A successful archive or export does not establish restore consistency. A Windows backup folder does not prove a usable image chain. The hardlink snapshot sizes must not be summed as independent full copies. Imagined now reads a root-published retained-archive inventory, reports all USB generations, and distinguishes PBS jobs so they cannot replace the USB result. The earlier roughly 44 GiB latest-generation estimate is superseded.
 
 ## Recovery rehearsals
 
@@ -52,7 +55,9 @@ Historical records describe guest restores in September 2026 and a services-VM r
 - [x] Retire Portainer, Uptime Kuma, and Sentinel from the live stack.
 - [ ] Diagnose the host SMART daemon startup timeout; extend disk-health coverage beyond the system NVMe.
 - [ ] Restore a guest and an application dataset from the current backup drive into isolation.
-- [ ] Add an independent/offsite copy and decide whether full media needs protection.
+- [x] Provision an independent physical on-site PBS destination.
+- [ ] Replace faulty PBS storage, reseed all groups and pass full integrity verification before resuming schedules.
+- [ ] Add offsite/disconnected protection and decide whether full media needs protection.
 - [ ] Reconcile live deployment files and Compose projects with the infrastructure repository.
 - [ ] Correct Imagined's retained-archive storage estimate and remove its retired Portainer launcher.
 - [ ] Review 12 containers without healthchecks, 10 without memory limits, and 14 without NanoCPU limits. Other CPU quota mechanisms were not audited.

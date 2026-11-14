@@ -1,8 +1,10 @@
 # HORCRUX Homelab
 
+**November 13 hardware hold:** A separate physical PBS server is integrated with Imagined, Harry, Prometheus and Grafana, but its first verification exposed uncorrectable disk reads and eight pending sectors. New PBS writes and schedules are paused; existing USB backups remain enabled. The host now reports 31.2 GiB usable RAM. See the [backup-server record](docs/audits/2026-11-13-backup-server.md).
+
 **Later November 12 update:** SMART monitoring is restored for the system NVMe and backup HDD. The media SSD still has incomplete SMART coverage. See the [repair record](docs/audits/2026-11-12.md#smart-monitoring-repair--later-on-november-12).
 
-**A single-node Proxmox homelab run like a small production environment:** documented, monitored, recoverable, and changed one verified step at a time.
+**A Proxmox compute node with an independent physical backup server, run like a small production environment:** documented, monitored, recoverable, and changed one verified step at a time.
 
 [![Proxmox VE](https://img.shields.io/badge/Proxmox_VE-9.2-111827?logo=proxmox&logoColor=white)](docs/architecture.md)
 [![Docker Compose](https://img.shields.io/badge/Docker_Compose-13_projects-111827?logo=docker&logoColor=white)](docs/architecture.md#service-layout)
@@ -21,6 +23,7 @@ This repository is the public, sanitized portfolio view of HORCRUX. It shows how
 | Local AI | Debian LXC running Ollama (Qwen 3.5 9B) behind an authenticated bridge |
 | Dashboard | **HorcruX Imagined**: a custom web dashboard with a built-in local AI assistant, a read-only Proxmox view, and backup status |
 | Kiosk | **HorcruX Orbit**: a live 3D observatory of guests, services, and network flows on a physical portrait monitor |
+| Backup server | Separate physical PBS host; disk failed initial verification; read-only and schedules paused |
 | Monitoring | Prometheus, Blackbox Exporter, Node Exporter, cAdvisor, Grafana, and a physical kiosk display |
 | DNS | AdGuard Home for the LAN and every tailnet device, with a real DNS-resolution probe |
 | Media and cloud | Jellyfin and Nextcloud, both private |
@@ -74,7 +77,7 @@ flowchart TD
 
 ## Status
 
-Live-audited November 12, 2026: 23 containers running, 16 active Prometheus scrape targets up, and the latest nightly backup completed for five scheduled guests. Selected external datasets now have a separate daily backup; full media, offsite recovery, and restore validation remain open. SMART monitoring and deployment drift need attention. See the [dated audit](docs/audits/2026-11-12.md) and [Operations](docs/operations.md#open-work).
+Live-audited November 12, 2026: 23 containers running, 16 active Prometheus scrape targets up, and the latest nightly backup completed for five scheduled guests. Selected external datasets now have a separate daily backup; full media, offsite recovery, and restore validation remain open. Media-SSD SMART coverage and deployment drift remain open; the system/backup-disk SMART daemon issue is repaired. See the [dated audit](docs/audits/2026-11-12.md) and [Operations](docs/operations.md#open-work).
 
 ## License
 
