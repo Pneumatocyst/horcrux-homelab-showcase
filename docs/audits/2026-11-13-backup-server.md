@@ -21,7 +21,7 @@ Verification was stopped. The new nightly PBS job was disabled, the datastore pl
 - Private HTTPS administration uses the existing services VM's Tailscale gateway and a loopback proxy with validated upstream TLS. Remote management depends on that VM; LAN administration remains available. No Funnel was enabled.
 - Matching PBS configuration recovery copies were saved in root-only hypervisor and USB folders after explicit approval. They were refreshed to preserve the paused/read-only configuration.
 - All 23 existing containers were running, all 15 configured healthchecks passed, and all retained CPU/memory limits remained present.
-- Eighteen focused regression tests and JavaScript syntax validation passed.
+- Twenty Python regression tests, three frontend health-assessment checks and JavaScript syntax validation passed. The actual live snapshot correctly produced **Needs attention** for the overview while all 15 active services remained up; generic Harry health reads also identified the PBS fault.
 - The compute host now reports about 31.2 GiB usable RAM, reflecting the previously planned 32 GB upgrade.
 
 ## Policy and current state
